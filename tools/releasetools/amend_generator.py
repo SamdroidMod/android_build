@@ -82,6 +82,10 @@ class AmendGenerator(object):
                   " || ".join(['getprop("ro.bootloader") == "%s"' % (b,)
                                for b in bootloaders]))
 
+  def RunBackup(self, command):
+    self.script.append("run_program PACKAGE:backuptool.sh %s" % (command))
+    self.included_files.add("backuptool.sh")
+
   def ShowProgress(self, frac, dur):
     """Update the progress bar, advancing it over 'frac' over the next
     'dur' seconds."""
@@ -99,10 +103,6 @@ class AmendGenerator(object):
       out.append(" " + i)
     self.script.append("".join(out))
     self.included_files.add(("applypatch_static", "applypatch"))
-
-  # Not quite right since we don't need to check /cache/saved.file on
-  # failure, but shouldn't hurt.
-  FileCheck = PatchCheck
 
   def CacheFreeSpaceCheck(self, amount):
     """Check that there's at least 'amount' space that can be made
@@ -196,9 +196,6 @@ class AmendGenerator(object):
     """Append text verbatim to the output script."""
     self.script.append(extra)
 
-  def UnmountAll(self):
-    pass
-
   def AddToZip(self, input_zip, output_zip, input_path=None):
     """Write the accumulated script to the output_zip file.  input_zip
     is used as the source for any ancillary binaries needed by the
@@ -212,11 +209,19 @@ class AmendGenerator(object):
       else:
         sourcefn = i
         targetfn = i
-      try:
-        if input_path is None:
-          data = input_zip.read(os.path.join("OTA/bin", sourcefn))
+      for zippath in ["OTA","SYSTEM"]:
+        fail = False
+        try:
+           if input_path is None:
+             data = input_zip.read(os.path.join("SYSTEM/bin", sourcefn))
+           else:
+             data = open(os.path.join(input_path, sourcefn)).read()
+           common.ZipWriteStr(output_zip, targetfn, data, perms=0755)
+        except (IOError, KeyError), e:
+           fail = True
+           continue
         else:
-          data = open(os.path.join(input_path, sourcefn)).read()
-        common.ZipWriteStr(output_zip, targetfn, data, perms=0755)
-      except (IOError, KeyError), e:
-        raise ExternalError("unable to include binary %s: %s" % (i, e))
+           break
+      else:
+        if (fail):
+           raise ExternalError("unable to include binary %s: %s" % (i, e))

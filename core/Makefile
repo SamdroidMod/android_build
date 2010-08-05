@@ -981,6 +981,29 @@ else
 $(INTERNAL_OTA_PACKAGE_TARGET): scriptmode := $(TARGET_OTA_SCRIPT_MODE)
 endif
 
+ifeq ($(TARGET_OTA_BACKUPTOOL),)
+# default to "false"
+$(INTERNAL_OTA_PACKAGE_TARGET): backuptool := false
+else
+$(INTERNAL_OTA_PACKAGE_TARGET): backuptool := $(TARGET_OTA_BACKUPTOOL)
+endif
+
+ifeq ($(TARGET_NO_RECOVERY),true)
+    TARGET_OTA_NO_RECOVERY := true
+endif
+ifeq ($(TARGET_OTA_NO_RECOVERY),)
+# default to "false"
+$(INTERNAL_OTA_PACKAGE_TARGET): recoveryex := false
+else
+$(INTERNAL_OTA_PACKAGE_TARGET): recoveryex := $(TARGET_OTA_NO_RECOVERY)
+endif
+
+ifeq ($(TARGET_OTA_ASSERT_DEVICE),)
+$(INTERNAL_OTA_PACKAGE_TARGET): override_device := auto
+else
+$(INTERNAL_OTA_PACKAGE_TARGET): override_device := $(TARGET_OTA_ASSERT_DEVICE)
+endif
+
 $(INTERNAL_OTA_PACKAGE_TARGET): $(BUILT_TARGET_FILES_PACKAGE) $(OTATOOLS)
 	@echo "Package OTA: $@"
 	$(hide) ./build/tools/releasetools/ota_from_target_files \
@@ -988,6 +1011,10 @@ $(INTERNAL_OTA_PACKAGE_TARGET): $(BUILT_TARGET_FILES_PACKAGE) $(OTATOOLS)
 	   -m $(scriptmode) \
 	   -p $(HOST_OUT) \
            -k $(KEY_CERT_PAIR) \
+           --backup=$(backuptool) \
+           --boot=$(recoveryex) \
+           --recovery=$(recoveryex) \
+           --override_device=$(override_device) \
            $(BUILT_TARGET_FILES_PACKAGE) $@
 
 .PHONY: otapackage
