@@ -75,7 +75,7 @@ import copy
 import errno
 import os
 import re
-import sha
+import hashlib
 import subprocess
 import tempfile
 import threading
