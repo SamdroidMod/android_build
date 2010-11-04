@@ -1,7 +1,23 @@
-# At the moment, use the same settings than the one
-# for armv5te, since TARGET_ARCH_VARIANT := armv5te-vfp
-# will only be used to select an optimized VFP-capable assembly
-# interpreter loop for Dalvik.
+# Configuration for Linux on ARM.
+# Generating binaries for the ARMv5TE architecture and higher
 #
-include $(BUILD_COMBOS)/arch/arm/armv5te.mk
+ARCH_ARM_HAVE_THUMB_SUPPORT     := true
+ARCH_ARM_HAVE_FAST_INTERWORKING := true
+ARCH_ARM_HAVE_64BIT_DATA        := true
+ARCH_ARM_HAVE_HALFWORD_MULTIPLY := true
+ARCH_ARM_HAVE_CLZ               := true
+ARCH_ARM_HAVE_FFS               := true
+
+# Note: Hard coding the 'tune' value here is probably not ideal,
+# and a better solution should be found in the future.
+#
+arch_variant_cflags := \
+    -march=armv5te \
+    -mtune=arm1176jzf-s \
+    -pipe \
+    -fomit-frame-pointer \
+    -D__ARM_ARCH_5__ \
+    -D__ARM_ARCH_5T__ \
+    -D__ARM_ARCH_5E__ \
+    -D__ARM_ARCH_5TE__
 
