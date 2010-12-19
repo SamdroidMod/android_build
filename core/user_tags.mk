@@ -392,6 +392,7 @@ GRANDFATHERED_USER_MODULES += \
 	org-netbeans-api-visual \
 	org-openide-util \
 	osgi \
+	overlay.default \
 	pand \
 	parseStringTest \
 	ping \
